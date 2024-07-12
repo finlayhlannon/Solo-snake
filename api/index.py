@@ -125,8 +125,14 @@ def move(game_state: typing.Dict) -> typing.Dict:
     my_body = game_state['you']['body']
     my_tail = my_body[-1]
     food = game_state['board']['food']
-    #print(opponents[start_snake_count - 1][0])
-    #print(my_body[0])
+    
+    def get_empty_spaces(game_state):
+        empty_spaces = []
+        for x in range(board_width):
+            for y in range(board_height):
+                if {'x': x, 'y': y} not in my_body and all({'x': x, 'y': y} not in snake['body'] for snake in game_state['board']['snakes']):
+                    empty_spaces.append({'x': x, 'y': y})
+        return empty_spaces
 
     my_body_length = len(game_state["you"]["body"])
 
@@ -166,95 +172,64 @@ def move(game_state: typing.Dict) -> typing.Dict:
     if {'x': my_head['x'], 'y': my_head["y"] + 1} in my_body:
         uvalue -= 100
         
-    #trapping myself
+    # Additional self-trap checks
     if {'x': my_head["x"] + 2, 'y': my_head["y"]} in my_body:
-        if {
-                'x': my_head["x"] + 2,
-                'y': my_head["y"]
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] + 2, 'y': my_head["y"]} == my_tail and health <= 99:
             rvalue += 2
         else:
             rvalue -= 2
     if {'x': my_head["x"] - 2, 'y': my_head["y"]} in my_body:
-        if {
-                'x': my_head["x"] - 2,
-                'y': my_head["y"]
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] - 2, 'y': my_head["y"]} == my_tail and health <= 99:
             lvalue += 2
         else:
             lvalue -= 2
     if {'x': my_head['x'], 'y': my_head["y"] - 2} in my_body:
-        if {
-                'x': my_head['x'],
-                'y': my_head["y"] - 2
-        } == my_tail and health <= 99:
+        if {'x': my_head['x'], 'y': my_head["y"] - 2} == my_tail and health <= 99:
             dvalue += 2
         else:
             dvalue -= 2
     if {'x': my_head['x'], 'y': my_head["y"] + 2} in my_body:
-        if {
-                'x': my_head['x'],
-                'y': my_head["y"] + 2
-        } == my_tail and health <= 99:
+        if {'x': my_head['x'], 'y': my_head["y"] + 2} == my_tail and health <= 99:
             uvalue += 2
         else:
             uvalue -= 2
 
     if {'x': my_head["x"] + 1, 'y': my_head["y"] + 1} in my_body:
-        if {
-                'x': my_head["x"] + 1,
-                'y': my_head["y"] + 1
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] + 1, 'y': my_head["y"] + 1} == my_tail and health <= 99:
             rvalue += 2
         else:
             rvalue -= 2
     if {'x': my_head["x"] - 1, 'y': my_head["y"] - 1} in my_body:
-        if {
-                'x': my_head["x"] - 1,
-                'y': my_head["y"] - 1
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] - 1, 'y': my_head["y"] - 1} == my_tail and health <= 99:
             lvalue += 2
         else:
             lvalue -= 2
     if {'x': my_head['x'] - 1, 'y': my_head["y"] - 1} in my_body:
-        if {
-                'x': my_head['x'] - 1,
-                'y': my_head["y"] - 1
-        } == my_tail and health <= 99:
+        if {'x': my_head['x'] - 1, 'y': my_head["y"] - 1} == my_tail and health <= 99:
             dvalue += 2
         else:
             dvalue -= 2
     if {'x': my_head['x'] + 1, 'y': my_head["y"] + 1} in my_body:
-        if {
-                'x': my_head['x'] + 1,
-                'y': my_head["y"] + 1
-        } == my_tail and health <= 99:
+        if {'x': my_head['x'] + 1, 'y': my_head["y"] + 1} == my_tail and health <= 99:
             uvalue += 2
         else:
             uvalue -= 2
 
     if {'x': my_head["x"] + 1, 'y': my_head["y"] - 1} in my_body:
-        if {
-                'x': my_head["x"] + 1,
-                'y': my_head["y"] - 1
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] + 1, 'y': my_head["y"] - 1} == my_tail and health <= 99:
             rvalue += 2
         else:
             rvalue -= 2
     if {'x': my_head["x"] - 1, 'y': my_head["y"] + 1} in my_body:
-        if {
-                'x': my_head["x"] - 1,
-                'y': my_head["y"] + 1
-        } == my_tail and health <= 99:
+        if {'x': my_head["x"] - 1, 'y': my_head["y"] + 1} == my_tail and health <= 99:
             lvalue += 2
         else:
             lvalue -= 2
 
-    # BFS for food
-    nearest_food_path = bfs_shortest_path(game_state, my_head, set((f['x'], f['y']) for f in food))
-    if nearest_food_path and len(nearest_food_path) > 1:
-        next_move = nearest_food_path[1]
-        if health <= 10:
+    if health <= 20:
+        nearest_food_path = bfs_shortest_path(game_state, my_head, set((f['x'], f['y']) for f in food))
+        if nearest_food_path and len(nearest_food_path) > 1:
+            next_move = nearest_food_path[1]
             if next_move['x'] > my_head['x']:
                 rvalue += 10
             elif next_move['x'] < my_head['x']:
@@ -263,37 +238,25 @@ def move(game_state: typing.Dict) -> typing.Dict:
                 uvalue += 10
             elif next_move['y'] < my_head['y']:
                 dvalue += 10
-        else:
+    else:
+        empty_spaces = get_empty_spaces(game_state)
+        nearest_empty_path = bfs_shortest_path(game_state, my_head, set((e['x'], e['y']) for e in empty_spaces))
+        if nearest_empty_path and len(nearest_empty_path) > 1:
+            next_move = nearest_empty_path[1]
             if next_move['x'] > my_head['x']:
-                rvalue -= 10
+                rvalue += 10
             elif next_move['x'] < my_head['x']:
-                lvalue -= 10
+                lvalue += 10
             elif next_move['y'] > my_head['y']:
-                uvalue -= 10
+                uvalue += 10
             elif next_move['y'] < my_head['y']:
-                dvalue -= 10
+                dvalue += 10
 
     flood_fill_area = {
-        "up":
-        get_flood_fill_area(game_state, {
-            "x": my_head["x"],
-            "y": my_head["y"] + 1
-        }),
-        "down":
-        get_flood_fill_area(game_state, {
-            "x": my_head["x"],
-            "y": my_head["y"] - 1
-        }),
-        "left":
-        get_flood_fill_area(game_state, {
-            "x": my_head["x"] - 1,
-            "y": my_head["y"]
-        }),
-        "right":
-        get_flood_fill_area(game_state, {
-            "x": my_head["x"] + 1,
-            "y": my_head["y"]
-        })
+        "up": get_flood_fill_area(game_state, {"x": my_head["x"], "y": my_head["y"] + 1}),
+        "down": get_flood_fill_area(game_state, {"x": my_head["x"], "y": my_head["y"] - 1}),
+        "left": get_flood_fill_area(game_state, {"x": my_head["x"] - 1, "y": my_head["y"]}),
+        "right": get_flood_fill_area(game_state, {"x": my_head["x"] + 1, "y": my_head["y"]})
     }
 
     # Determine max flood fill area
@@ -340,9 +303,4 @@ def move(game_state: typing.Dict) -> typing.Dict:
         move = "down"
         print(dvalue)
 
-
     return {"move": move}
-
-if __name__ == "__main__":
-    handlers = {"info": info, "start": start, "move": move, "end": end}
-    run_server(handlers)
