@@ -329,16 +329,16 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     if rvalue == max_value:
         move = "right"
-        print(rvalue)
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
     elif lvalue == max_value:
         move = "left"
-        print(lvalue)
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
     elif uvalue == max_value:
         move = "up"
-        print(uvalue)
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
     else:
         move = "down"
-        print(dvalue)
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
 
 
     return {"move": move}
