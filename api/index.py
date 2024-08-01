@@ -222,13 +222,13 @@ def move(game_state: typing.Dict) -> typing.Dict:
         if path:
             distance = len(path)
             if food_item['x'] > my_head['x']:
-                rvalue += food_value / distance
+                rvalue += food_value
             if food_item['x'] < my_head['x']:
-                lvalue += food_value / distance
+                lvalue += food_value
             if food_item['y'] > my_head['y']:
-                uvalue += food_value / distance
+                uvalue += food_value
             if food_item['y'] < my_head['y']:
-                dvalue += food_value / distance
+                dvalue += food_value
     
     # Flood fill bonuses
     flood_fill_area = get_flood_fill_area(game_state, my_head)
