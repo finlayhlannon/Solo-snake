@@ -47,25 +47,14 @@ print(f"\nRunning Battlesnake at http://{host}:{port}")
 import random
 import typing
 
-# Variable definitions
-border_penalty = 1000
-close_border_penalty = 2
-body_collision_penalty = 100
-head_on_collision_penalty = 100
-corner_collision_penalty = 100
-trapping_penalty = 2
-food_value = 10
-flood_fill_bonus = 20
-wall_penalty = 10
-
 def info() -> typing.Dict:
     print("INFO")
     return {
         "apiversion": "1",
         "author": "Finlay",
-        "color": "#12A434",
-        "head": "lantern-fish",
-        "tail": "do-sammy",
+        "color": "#12A483",
+        "head": "silly",
+        "tail": "curled",
     }
 
 def start(game_state: typing.Dict):
@@ -124,6 +113,7 @@ def bfs_shortest_path(game_state, start, food):
                         parent[(neighbor['x'], neighbor['y'])] = current
     return []
 
+
 def move(game_state: typing.Dict) -> typing.Dict:
     global rvalue, lvalue, uvalue, dvalue
     rvalue, lvalue, uvalue, dvalue = 0, 0, 0, 0
@@ -135,126 +125,224 @@ def move(game_state: typing.Dict) -> typing.Dict:
     my_body = game_state['you']['body']
     my_tail = my_body[-1]
     food = game_state['board']['food']
-    opponents = [snake['body'] for snake in game_state['board']['snakes']]
+    #print(opponents[start_snake_count - 1][0])
+    #print(my_body[0])
 
-    # Check direction based on neck and head positions
+    my_body_length = len(game_state["you"]["body"])
+
     if my_neck["x"] < my_head["x"]:
-        lvalue -= body_collision_penalty
+        lvalue = -100
     elif my_neck["x"] > my_head["x"]:
-        rvalue -= body_collision_penalty
+        rvalue = -100
     elif my_neck["y"] < my_head["y"]:
-        dvalue -= body_collision_penalty
+        dvalue = -100
     elif my_neck["y"] > my_head["y"]:
-        uvalue -= body_collision_penalty
+        uvalue = -100
 
-    # Border penalties
     if my_head["x"] <= 0:
-        lvalue -= border_penalty
+        lvalue -= 100
     if my_head["x"] >= board_width - 1:
-        rvalue -= border_penalty
+        rvalue -= 100
     if my_head["y"] <= 0:
-        dvalue -= border_penalty
+        dvalue -= 100
     if my_head["y"] >= board_height - 1:
-        uvalue -= border_penalty
+        uvalue -= 100
 
     if my_head["x"] <= 1:
-        lvalue -= close_border_penalty
+        lvalue -= 2
     if my_head["x"] >= board_width - 2:
-        rvalue -= close_border_penalty
+        rvalue -= 2
     if my_head["y"] <= 1:
-        dvalue -= close_border_penalty
+        dvalue -= 2
     if my_head["y"] >= board_height - 2:
-        uvalue -= close_border_penalty
+        uvalue -= 2
 
-    # Body collision penalties
     if {'x': my_head["x"] + 1, 'y': my_head["y"]} in my_body:
-        rvalue -= body_collision_penalty
+        rvalue -= 100
     if {'x': my_head["x"] - 1, 'y': my_head["y"]} in my_body:
-        lvalue -= body_collision_penalty
+        lvalue -= 100
     if {'x': my_head['x'], 'y': my_head["y"] - 1} in my_body:
-        dvalue -= body_collision_penalty
+        dvalue -= 100
     if {'x': my_head['x'], 'y': my_head["y"] + 1} in my_body:
-        uvalue -= body_collision_penalty
+        uvalue -= 100
         
-    # Opponent collision penalties
-    if start_snake_count >= 2:
-        if {'x': my_head["x"] + 1, 'y': my_head["y"]} in opponents[1]:
-            rvalue -= body_collision_penalty
-        if {'x': my_head["x"] - 1, 'y': my_head["y"]} in opponents[1]:
-            lvalue -= body_collision_penalty
-        if {'x': my_head['x'], 'y': my_head["y"] - 1} in opponents[1]:
-            dvalue -= body_collision_penalty
-        if {'x': my_head['x'], 'y': my_head["y"] + 1} in opponents[1]:
-            uvalue -= body_collision_penalty
-    else:
-        pass
+    #trapping myself
+    if {'x': my_head["x"] + 2, 'y': my_head["y"]} in my_body:
+        if {
+                'x': my_head["x"] + 2,
+                'y': my_head["y"]
+        } == my_tail and health <= 99:
+            rvalue += 2
+        else:
+            rvalue -= 2
+    if {'x': my_head["x"] - 2, 'y': my_head["y"]} in my_body:
+        if {
+                'x': my_head["x"] - 2,
+                'y': my_head["y"]
+        } == my_tail and health <= 99:
+            lvalue += 2
+        else:
+            lvalue -= 2
+    if {'x': my_head['x'], 'y': my_head["y"] - 2} in my_body:
+        if {
+                'x': my_head['x'],
+                'y': my_head["y"] - 2
+        } == my_tail and health <= 99:
+            dvalue += 2
+        else:
+            dvalue -= 2
+    if {'x': my_head['x'], 'y': my_head["y"] + 2} in my_body:
+        if {
+                'x': my_head['x'],
+                'y': my_head["y"] + 2
+        } == my_tail and health <= 99:
+            uvalue += 2
+        else:
+            uvalue -= 2
 
-    # Head-on collision penalties
-    if start_snake_count == 1:
-        pass
-    elif start_snake_count >= 2 and len(opponents) > 1:
-        opponent1_length = len(opponents[1])
+    if {'x': my_head["x"] + 1, 'y': my_head["y"] + 1} in my_body:
+        if {
+                'x': my_head["x"] + 1,
+                'y': my_head["y"] + 1
+        } == my_tail and health <= 99:
+            rvalue += 2
+        else:
+            rvalue -= 2
+    if {'x': my_head["x"] - 1, 'y': my_head["y"] - 1} in my_body:
+        if {
+                'x': my_head["x"] - 1,
+                'y': my_head["y"] - 1
+        } == my_tail and health <= 99:
+            lvalue += 2
+        else:
+            lvalue -= 2
+    if {'x': my_head['x'] - 1, 'y': my_head["y"] - 1} in my_body:
+        if {
+                'x': my_head['x'] - 1,
+                'y': my_head["y"] - 1
+        } == my_tail and health <= 99:
+            dvalue += 2
+        else:
+            dvalue -= 2
+    if {'x': my_head['x'] + 1, 'y': my_head["y"] + 1} in my_body:
+        if {
+                'x': my_head['x'] + 1,
+                'y': my_head["y"] + 1
+        } == my_tail and health <= 99:
+            uvalue += 2
+        else:
+            uvalue -= 2
 
-        if {'x': my_head["x"] + 2, 'y': my_head["y"]} == opponents[1][0]:
-            if len(my_body) <= opponent1_length:
-                rvalue -= head_on_collision_penalty
-            else:
-                rvalue += head_on_collision_penalty
-        if {'x': my_head["x"] - 2, 'y': my_head["y"]} == opponents[1][0]:
-            if len(my_body) <= opponent1_length:
-                lvalue -= head_on_collision_penalty
-            else:
-                lvalue += head_on_collision_penalty
-        if {'x': my_head["x"], 'y': my_head["y"] - 2} == opponents[1][0]:
-            if len(my_body) <= opponent1_length:
-                dvalue -= head_on_collision_penalty
-            else:
-                dvalue += head_on_collision_penalty
-        if {'x': my_head["x"], 'y': my_head["y"] + 2} == opponents[1][0]:
-            if len(my_body) <= opponent1_length:
-                uvalue -= head_on_collision_penalty
-            else:
-                uvalue += head_on_collision_penalty
+    if {'x': my_head["x"] + 1, 'y': my_head["y"] - 1} in my_body:
+        if {
+                'x': my_head["x"] + 1,
+                'y': my_head["y"] - 1
+        } == my_tail and health <= 99:
+            rvalue += 2
+        else:
+            rvalue -= 2
+    if {'x': my_head["x"] - 1, 'y': my_head["y"] + 1} in my_body:
+        if {
+                'x': my_head["x"] - 1,
+                'y': my_head["y"] + 1
+        } == my_tail and health <= 99:
+            lvalue += 2
+        else:
+            lvalue -= 2
 
-    # Food bonuses
-    for food_item in food:
-        path = bfs_shortest_path(game_state, my_head, [food_item])
-        if path:
-            distance = len(path)
-            if food_item['x'] > my_head['x']:
-                rvalue += food_value
-            if food_item['x'] < my_head['x']:
-                lvalue += food_value
-            if food_item['y'] > my_head['y']:
-                uvalue += food_value
-            if food_item['y'] < my_head['y']:
-                dvalue += food_value
-    
-    # Flood fill bonuses
-    flood_fill_area = get_flood_fill_area(game_state, my_head)
-    if flood_fill_area:
-        flood_fill_score = flood_fill_area * flood_fill_bonus
-        rvalue += flood_fill_score
-        lvalue += flood_fill_score
-        uvalue += flood_fill_score
-        dvalue += flood_fill_score
+    # BFS for food
+    nearest_food_path = bfs_shortest_path(game_state, my_head, set((f['x'], f['y']) for f in food))
+    if nearest_food_path and len(nearest_food_path) > 1:
+        next_move = nearest_food_path[1]
+        if health <= 10:
+            if next_move['x'] > my_head['x']:
+                rvalue += 10
+            elif next_move['x'] < my_head['x']:
+                lvalue += 10
+            elif next_move['y'] > my_head['y']:
+                uvalue += 10
+            elif next_move['y'] < my_head['y']:
+                dvalue += 10
+        else:
+            if next_move['x'] > my_head['x']:
+                rvalue -= 10
+            elif next_move['x'] < my_head['x']:
+                lvalue -= 10
+            elif next_move['y'] > my_head['y']:
+                uvalue -= 10
+            elif next_move['y'] < my_head['y']:
+                dvalue -= 10
 
-    # Select move with the highest value
+    flood_fill_area = {
+        "up":
+        get_flood_fill_area(game_state, {
+            "x": my_head["x"],
+            "y": my_head["y"] + 1
+        }),
+        "down":
+        get_flood_fill_area(game_state, {
+            "x": my_head["x"],
+            "y": my_head["y"] - 1
+        }),
+        "left":
+        get_flood_fill_area(game_state, {
+            "x": my_head["x"] - 1,
+            "y": my_head["y"]
+        }),
+        "right":
+        get_flood_fill_area(game_state, {
+            "x": my_head["x"] + 1,
+            "y": my_head["y"]
+        })
+    }
+
+    # Determine max flood fill area
+    max_area = max(flood_fill_area.values())
+    min_area = min(flood_fill_area.values())
+
+    for direction, area in flood_fill_area.items():
+        if area == max_area and max_area != min_area:
+            if direction == "right":
+                rvalue += 20
+            elif direction == "left":
+                lvalue += 20
+            elif direction == "up":
+                uvalue += 20
+            elif direction == "down":
+                dvalue += 20
+        elif area == min_area and max_area != min_area:
+            if direction == "right":
+                rvalue -= 20
+            elif direction == "left":
+                lvalue -= 20
+            elif direction == "up":
+                uvalue -= 20
+            elif direction == "down":
+                dvalue -= 20
+        else:
+            rvalue += 0
+            lvalue += 0
+            uvalue += 0
+            dvalue += 0
+
     max_value = max(rvalue, lvalue, uvalue, dvalue)
-    if max_value == rvalue:
-        move = "right"
-    elif max_value == lvalue:
-        move = "left"
-    elif max_value == uvalue:
-        move = "up"
-    elif max_value == dvalue:
-        move = "down"
-    else:
-        move = "right"
 
-    print(f"Move: {move}, Values: Right: {rvalue}, Left: {lvalue}, Up: {uvalue}, Down: {dvalue}")
+    if rvalue == max_value:
+        move = "right"
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
+    elif lvalue == max_value:
+        move = "left"
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
+    elif uvalue == max_value:
+        move = "up"
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
+    else:
+        move = "down"
+        print("right:", rvalue, " left:", lvalue, " down:", dvalue, " up:", uvalue)
+
 
     return {"move": move}
 
 if __name__ == "__main__":
-    app.run(host=host, port=port)
+    handlers = {"info": info, "start": start, "move": move, "end": end}
+    run_server(handlers)
